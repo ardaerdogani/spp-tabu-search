@@ -224,11 +224,11 @@ class TabuSearchSPP:
         self._ensure_row_index()
         assert self._row_cols is not None
 
-        cols: Set[int] = set()
+        cols_set: Set[int] = set()
         for i in violated:
-            cols.update(self._row_cols[i])
+            cols_set.update(self._row_cols[i])
 
-        cols = list(cols)
+        cols = list(cols_set)
         try:
             mult = int(self.cand_mult)
         except (TypeError, ValueError):
