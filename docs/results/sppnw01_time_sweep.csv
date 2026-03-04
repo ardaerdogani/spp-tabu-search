@@ -1,0 +1,5 @@
+instance,time_s,seeds,feas_rate,best_cost,avg_cost
+data/sppnw01.txt,1,5,0.0,,
+data/sppnw01.txt,3,5,0.0,,
+data/sppnw01.txt,5,5,0.0,,
+data/sppnw01.txt,10,5,1.0,197940,197940
