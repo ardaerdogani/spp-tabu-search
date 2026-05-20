@@ -9,3 +9,8 @@ data/*.txt
 data/*.dat
 data/*.zip
 !data/sppnw01.txt
+!data/sppnw06.txt
+!data/sppnw10.txt
+!data/sppnw20.txt
+!data/sppnw41.txt
+!data/sppnw43.txt

@@ -37,6 +37,11 @@ class TabuSearchSPP:
         self.best_feas_x: Optional[List[int]] = None
         self.best_feas_cost: float = float("inf")
 
+        self.iterations_run: int = 0
+        self.elapsed_s: float = 0.0
+        self.first_feasible_iter: Optional[int] = None
+        self.first_feasible_time_s: Optional[float] = None
+
         self._row_cols: Optional[List[List[int]]] = None
         self._col_masks: Optional[List[int]] = None
 
@@ -241,16 +246,23 @@ class TabuSearchSPP:
 
     def solve(self) -> Tuple[List[int], Optional[int]]:
         start = time.time()
-        init_deadline = start + max(0.0, self.time_limit_s)
+        # Cap construction at half the total budget (and at most 10 s) so the
+        # tabu loop always gets a fair share, even when construction stalls
+        # on a large instance.
+        construction_budget = min(0.5 * self.time_limit_s, 10.0)
+        init_deadline = start + max(0.0, construction_budget)
         self._initial_solution_greedy(init_deadline)
 
         if self.infeas() == 0 and self.cost < self.best_feas_cost:
             self.best_feas_cost = self.cost
             self.best_feas_x = self.x[:]
+            self.first_feasible_iter = 0
+            self.first_feasible_time_s = time.time() - start
 
         best_overall = self.obj()
         best_overall_x = self.x[:]
         stall = 0
+        it = 0
 
         for it in range(self.max_iters):
             if time.time() - start >= self.time_limit_s:
@@ -261,6 +273,9 @@ class TabuSearchSPP:
                 if self.cost < self.best_feas_cost:
                     self.best_feas_cost = self.cost
                     self.best_feas_x = self.x[:]
+                    if self.first_feasible_iter is None:
+                        self.first_feasible_iter = it
+                        self.first_feasible_time_s = time.time() - start
                     stall = 0
                 else:
                     stall += 1
@@ -314,6 +329,9 @@ class TabuSearchSPP:
                 best_overall = new_obj
                 best_overall_x = self.x[:]
                 stall = 0
+
+        self.iterations_run = it + 1
+        self.elapsed_s = time.time() - start
 
         if self.best_feas_x is not None:
             return self.best_feas_x, int(self.best_feas_cost)

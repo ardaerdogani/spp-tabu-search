@@ -46,6 +46,10 @@ def main() -> None:
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--time", type=float, default=10.0, help="Time limit in seconds")
     p.add_argument("--iters", type=int, default=200_000)
+    p.add_argument("--base-tenure", type=int, default=10,
+                   help="Minimum tabu tenure after each flip.")
+    p.add_argument("--tenure-rand", type=int, default=10,
+                   help="Random additive tenure component (uniform 0..tenure-rand).")
     args = p.parse_args()
 
     try:
@@ -54,14 +58,27 @@ def main() -> None:
         raise SystemExit(str(e)) from e
 
     inst = parse_orlib_spp(str(instance_path))
-    ts = TabuSearchSPP(inst, seed=args.seed, time_limit_s=args.time, max_iters=args.iters)
+    ts = TabuSearchSPP(
+        inst,
+        seed=args.seed,
+        time_limit_s=args.time,
+        max_iters=args.iters,
+        base_tenure=args.base_tenure,
+        tenure_rand=args.tenure_rand,
+    )
     x, best_cost = ts.solve()
 
     selected = sum(x)
     if best_cost is None:
-        print(f"No feasible solution found. Selected cols={selected}")
+        print(
+            f"No feasible solution found. Selected cols={selected} "
+            f"| iters={ts.iterations_run} | elapsed={ts.elapsed_s:.2f}s"
+        )
     else:
-        print(f"Best feasible cost={best_cost} | selected cols={selected}")
+        print(
+            f"Best feasible cost={best_cost} | selected cols={selected} "
+            f"| iters={ts.iterations_run} | elapsed={ts.elapsed_s:.2f}s"
+        )
 
 
 if __name__ == "__main__":
